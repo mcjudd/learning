@@ -1,0 +1,70 @@
+---
+title: "Homebrewed tips and tricks"
+author: "Mike Judd"
+output:
+  html_document:
+    number_sections: yes
+    theme: flatly
+    toc: yes
+---
+<hr>
+
+# The **compound assignment** pipe operator (using `magrittr`)
+
+```{r, results='hide'}
+library(dplyr)
+library(magrittr)
+```
+
+
+```{r magrittr example}
+
+df <- data.frame(a = sample(letters, 5),
+                 b = sample(rev(letters), 5))
+df
+
+# Instead of this ...
+
+df1 <- df %>%
+    mutate_each(funs(toupper))
+
+# ... do this!
+
+df %<>% mutate_each(funs(toupper))
+df
+```
+
+# The use of `eval` as a sort of `with` function
+
+Example c/o [Datalove](http://datalove.org/r/dplyr/2015/01/26/dplyr-100-lines-02-filter/):
+
+```{r evalfunction}
+# Attempting to recreate (or bastardize) dplyr::filter
+
+filter2 <- function (data, expr) {
+    data[eval(substitute(expr), envir = data), ]
+}
+data(mtcars)
+filter2(mtcars, mpg > 30)
+
+```
+
+```{r better}
+# This expands the functionality to take an arbitrary number of filter arguments
+
+filter2 <- function (data, ...) {
+    expr <- eval(substitute(alist(...)))
+    for (i in seq_along(expr)) {
+        e <- expr[[i]]
+        data <- data[eval(e,data), ]
+    }
+    data
+}
+
+filter2(mtcars, mpg > 20, cyl == 6, gear == 4)
+
+```
+
+
+
+

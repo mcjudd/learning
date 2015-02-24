@@ -1,0 +1,154 @@
+---
+title: "Programming Notes"
+output:
+  html_document:
+    highlight: textmate
+    keep_md: yes
+    theme: flatly
+---
+<hr>
+## Chapter 1 
+<hr>
+
+## 1.1 The Elements of Programming
+
+- Primitive arithmetic operations and their combinations
+- Abstractions of combined operations by defining them as compound procedures
+
+<hr>
+### **1.1.7** Newton's Method for Computing Square Roots
+
+Difference between functions and procedures:  
+
+- A function does not describe the steps of how to go from an input to an output -- a procedure does! 
+- A function describes properties of things and a procedure tells how to do things
+    - Function = declarative knowledge (what is) 
+    - Procedure = imperative knowledge (how to)
+
+To compute a square root using Newton's methods,  you make iterative approximations that get better according to the calculation
+
+    Approximation of Sqrt(y)  = y + x/y
+
+This can be represented in an R function (or procedure)
+
+```{r newtonfunction}
+
+newton.sqrt <- function (x) {
+    good.enough <- function(guess, x) {
+        abs(guess^2 - x) < 0.001
+        }
+    improve.guess <- function(guess, x) {
+        mean(c(guess, x/guess))
+        }
+    sqrt.iter <- function(guess, x) {
+        if (good.enough(guess, x)) { 
+            guess } else { sqrt.iter(improve.guess(guess, x), x) }
+        }
+    return(sqrt.iter(1, x))
+    }
+newton.sqrt(9)
+```
+
+Leveraging scoping rules, we can simplify the `newton.sqrt` function like so:
+
+```{r newtonfunction.simple}
+
+newton.sqrt.simplified <- function (x) {
+    
+    good.enough <- function(guess) {
+        abs(guess^2 - x) < 0.001
+        }
+    improve.guess <- function(guess) {
+        mean(c(guess, x/guess))
+        }
+    sqrt.iter <- function(guess) {
+        if (good.enough(guess)) { 
+            guess } else { sqrt.iter(improve.guess(guess)) }
+        }
+    return(sqrt.iter(1))
+    }
+
+newton.sqrt.simplified(9)
+```
+
+#### Lexical scoping
+
+The functions defined within `newton.sqrt` and `newton.sqrt.simplified` are in the scope of the formal parameter `x` since it is defined in the formal arguments, so we don't have to pass `x` explicitly to each subsequent nested function. Rather, we allow a new `x` within each function to be a _free variable_ and inherit its value from the bound `x`.
+
+
+If we want to compare the two functions for CPU efficiency, we can do this:
+
+```{r computeefficiency}
+system.time(newton.sqrt(123456789))
+system.time(newton.sqrt.simplified(123456789))
+```
+
+Both functions illustrate another important concept: **abstraction**
+
+### **1.1.8** Procedures as Black-box Abstractions
+
+`sqrt.newton` is an example of a function defined by a set of mutually defined functions
+
+Here is how `R` defines its native `sqrt` function, which calls `C++` code so that it is light and efficient:
+
+```{r native.sqrt.function}
+dummycode <- "Find the C code!"
+```
+
+Decomposition of the program into multiple inter-related procedures -- it is important that **each procedure accomplishes an identifiable task that can be used as a module in defining other procedures**
+
+When we define the `good.enough` procedure (or "function" in `R` parlance), it takes the `square` argument (or `'^2'` function) as a 'black box'; as far as the `good.enough` procedure is concerned, `square` is not a procedure, but **an abstraction of a procedure**
+
+The parameter names should be local to the body of the procedure
+
+A formal parameter is a _bound variable_, and any variable within the body of the function not named in the formal arguments is a _free variable_
+
+<hr>
+
+## **1.2** Procedures and the Processes They Generate
+
+<hr>
+
+### **1.2.1** Linear Recursion and Iteration
+
+A basic example of a function that can be computed using linear recursion and/or linear iteration is the _factorial_, defined as 
+
+    n! = n * (n-1)!
+
+Here it is, using linear recursion:
+
+```{r linear.recursion}
+
+factorial.recursive <- function(n) {
+    if (n == 1) {1} else {
+        n * factorial.recursive(n - 1)
+        }
+    }
+
+factorial.recursive(9)
+```
+
+Factorials can also be calculated using linear iteration:
+
+```{r linear.iteration}
+factorial.iterative <- function(n) {
+    fact.iter <- function(product, counter) {
+        if (counter > n) { product } else {
+          fact.iter(
+              (counter * product),
+              (counter + 1)
+              )}
+        }
+    fact.iter(1, 1)
+    }
+factorial.iterative(9)
+```
+
+(As an aside, here is a comparison of how they perform)
+
+```{r compfunctions}
+system.time(factorial.recursive(100))
+system.time(factorial.iterative(100))
+```
+
+

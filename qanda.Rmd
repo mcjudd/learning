@@ -1,0 +1,17 @@
+---
+title: "Q&A"
+author: "Mike Judd"
+output:
+  html_document:
+    number_sections: yes
+    theme: flatly
+    toc: yes
+---
+<hr>
+
+# What is a 'functional'?
+
+According to [Hadley](http://adv-r.had.co.nz/Functionals.html):
+
+> a **functional** is a function that takes a function as an input and returns a vector as output
+
